@@ -3,7 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mobiquitynetworks.servicestructure;
+package com.mobiquitynetworks.statsutilspig;
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,9 +28,9 @@ import org.apache.pig.data.Tuple;
  *
  * @author asabater
  */
-public class createCombinations extends EvalFunc<String>{
+public class CreateCombinations extends EvalFunc<String>{
     
-    private static final Log LOG = LogFactory.getLog(Statistics.class);
+    private static final Log LOG = LogFactory.getLog(CreateCombinations.class);
     
     @Override
     public String exec(Tuple tuple) throws IOException {

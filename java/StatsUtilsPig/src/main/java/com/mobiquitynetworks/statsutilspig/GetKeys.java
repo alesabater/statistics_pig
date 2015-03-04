@@ -1,4 +1,9 @@
-package com.mobiquitynetworks.servicestructure;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mobiquitynetworks.statsutilspig;
 
 import com.google.common.primitives.Ints;
 import java.io.IOException;
@@ -31,7 +36,7 @@ import static org.bson.types.ObjectId.isValid;
  */
 public class GetKeys extends EvalFunc<String>{
     
-    private static final Log LOG = LogFactory.getLog(Statistics.class);
+    private static final Log LOG = LogFactory.getLog(GetKeys.class);
     BagFactory mBagFactory = BagFactory.getInstance();  
     TupleFactory mTupleFactory = TupleFactory.getInstance();
 

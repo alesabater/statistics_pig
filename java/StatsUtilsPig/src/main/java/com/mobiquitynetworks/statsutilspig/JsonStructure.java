@@ -57,7 +57,7 @@ public class JsonStructure extends EvalFunc<Map> {
      *               ([type#string,real#venue.name,name#Venue Name])
      *            },
      *            (5476d523a20d45dd20e8dd1f|*||be119bdc27c47750acce35c50ed9d09fbedfddd4|*|Kitsap Mall,2015,1,24),1,0,0)
-     * As you can see the input is formed by a tuple that contains a bag and another tuple inside, the bag which is the first element of the tuple
+     * The input is formed by a tuple that contains a bag and another tuple inside, the bag which is the first element of the tuple
      * contains information of the features we need to calculate metrics and the inner tuple contains the event info and counters
      *
      * @param   input   Is the Tuple that pig passes to the UDF
