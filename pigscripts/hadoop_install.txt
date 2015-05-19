@@ -1,0 +1,243 @@
+## Script made by Alejandro Sabater
+## Made 02/03/2015
+##
+## Ubuntu version: 14.04
+##
+##
+## 
+
+## INSTALL JAVA ORACLE 7
+
+# Download repo
+sudo add-apt-repository ppa:webupd8team/java
+
+# Update repos
+sudo apt-get update
+
+# get java 7
+sudo apt-get install oracle-java7-installer
+
+# set java 7 as default
+sudo apt-get install oracle-java7-set-default
+
+# test java
+java -version
+
+
+
+## CREATE HADOOP USER
+
+# create user namespace
+sudo adduser hadoop-env
+
+# set user password
+# Here the terminal will prompt for a password twice
+sudo passwd hadoop-env
+
+# log to the new user
+su - hadoop-env
+
+
+## CREATE CERTIFICATE FOR SSH PASSWORDLESS
+
+# create certificate
+ssh-keygen -t rsa
+
+# copy public certificate into authorized's certificates directory
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+# set permissions for authorized's certificates directory so it can be accessed
+chmod 0600 ~/.ssh/authorized_keys
+
+# test ssh passwordless
+ssh localhost
+
+## if it asks you for a password, something went wrong. Try it again, remember about changing the permissions of ~/.ssh/authorized_keys
+## else, everything is good
+
+
+## DOWNLOAD HADOOP
+
+# go to user's root directory
+cd ~
+
+# Download hadoop source from mirror. NOTE: Mirrors may change or stop existing, so if you have any problems this is a good to start debugging
+#wget http://ftp.cixug.es/apache/hadoop/common/stable/hadoop-2.6.0.tar.gz
+
+# Untar hadoop source
+tar xzf hadoop-2.6.0.tar.gz
+
+
+## CONFIGURE HADOOP's ENVIRONMENT VARIABLES AND CONFIG VARIABLES
+
+# set environment variables
+cat <<EOT >> ~/.profile
+export HADOOP_HOME=/home/hadoop-env/hadoop-2.6.0
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+EOT
+
+## Edit $HADOOP_HOME/etc/hadoop/hadoop-env.sh file and set JAVA_HOME environment varible
+
+
+
+
+# Update enviroment variables
+source ~/.profile
+
+# change directory to hadoop conf files
+cd $HADOOP_HOME/etc/hadoop
+sed -i '/^export\ JAVA_HOME/d' hadoop-env.sh
+cat <<EOT >> ~/hadoop-env.sh
+export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+EOT
+
+# edit core-site.xml file
+cat <<EOT > core-site.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+	<property>
+		<name>fs.default.name</name>
+		<value>hdfs://localhost:9000</value>
+	</property>
+</configuration>
+
+EOT
+
+# edit hdfs-site.xml
+
+cat <<EOT > hdfs-site.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+<property>
+<name>dfs.replication</name>
+<value>1</value>
+</property>
+
+<property>
+<name>dfs.name.dir</name>
+<value>file:///home/hadoop-env/hadoopdata/hdfs/namenode</value>
+</property>
+
+<property>
+<name>dfs.data.dir</name>
+<value>file:///home/hadoop-env/hadoopdata/hdfs/datanode</value>
+</property>
+</configuration>
+
+EOT
+
+# edit yarn-site.xml
+
+cat <<EOT > yarn-site.xml
+<?xml version="1.0"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<configuration>
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+</configuration>
+
+EOT
+
+
+## START HADOOP
+
+# format namenode
+hdfs namenode -format
+
+# change to hadoop's sbin directory
+cd $HADOOP_HOME/sbin/
+
+# start hadoop's filesystem service
+start-dfs.sh
+
+# start hadoop's yarn service
+start-yarn.sh
+
+# Check Hadoop services
+$JAVA_HOME/bin/jps
+
+## You should see the following services up and running:
+## ResourceManager
+## NodeManager
+## DataNode
+## NameNode
+## SecondaryNameNode
+## Jps
+
+## Try your hadoop services by accessing them through HTTP APIs
+## http://127.0.0.1:50070/ --> NameNode info
+## http://127.0.0.1:8088/ --> General hadoop throughput info 
+## http://127.0.0.1:50090/ --> secondary Namenode info
+## http://127.0.0.1:50075/ --> DataNode info
+
+## Test Hadoop Setup
+
+hdfs dfs -mkdir /user
+hdfs dfs -mkdir /user/hadoop
+echo "This is a test for hadoop" > test.txt
+hdfs dfs -put test.txt /user/hadoop/
+
+## Go to http://127.0.0.1:50070/explorer.html#/user/hadoop/
+## you should see your file on the right side
+## Installation of Hadoop Pseudo-distributed Node READY
+
+
+
+
+
+
